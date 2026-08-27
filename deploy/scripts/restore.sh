@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 umask 077
+# shellcheck source=deploy/scripts/common.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
 [ "$#" -eq 1 ] || die 'usage: restore.sh <openwa-backup-*.tar.gz.enc>'
@@ -31,7 +32,7 @@ if [ -n "$(compose ps --status running -q openwa)" ]; then
   "$SCRIPT_DIR/backup.sh"
 fi
 compose stop openwa
-docker compose --project-directory "$DEPLOY_DIR" --env-file "$ENV_FILE" \
+OPENWA_RUNTIME_ENV_FILE="$ENV_FILE" docker compose --project-directory "$DEPLOY_DIR" --env-file "$ENV_FILE" \
   -f "$COMPOSE_FILE" -f "$DEPLOY_DIR/compose.restore.yml" \
   run --rm --no-deps --entrypoint /bin/bash \
     -v "$stage/openwa-state.tar.gz:/restore/openwa-state.tar.gz:ro" openwa \

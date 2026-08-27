@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 45s
     env_file:
-      - .env.production
+      - ${OPENWA_RUNTIME_ENV_FILE:-.env.production}
     environment:
       HOME: /tmp
       XDG_CONFIG_HOME: /tmp/.config

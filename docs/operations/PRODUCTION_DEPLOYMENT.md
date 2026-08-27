@@ -3,6 +3,10 @@
 This runbook is design-only. It must not be executed on the Brunova VPS until a hostname, access
 policy, maintenance window, and off-host backup destination are approved.
 
+Canonical checkout path: `/opt/brunova/openwa`. Canonical runtime environment:
+`/opt/brunova/openwa/deploy/.env.production` with mode `0600`. The root `.env` is operator-only VPS
+access material and must never be passed to Compose or copied into the runtime environment.
+
 ## Intended topology
 
 Internet traffic terminates at host Nginx on 443. Nginx proxies to
@@ -28,6 +32,25 @@ reservation, but OOM contention with existing production services remains a mate
    firewall; Nginx is the only public boundary.
 6. Configure an encrypted off-host backup copy and test retrieval before go-live.
 7. Run validate, deploy, smoke test, and a restore drill during the maintenance window.
+
+Run the read-only preflight before any change:
+
+```bash
+cd /opt/brunova/openwa
+OPENWA_OFFSITE_BACKUP_TARGET='configured-target-identifier' deploy/scripts/preflight-vps.sh
+```
+
+For the authorized production deploy only after every output is reviewed:
+
+```bash
+OPENWA_DEPLOY_MODE=production \
+OPENWA_PREFLIGHT_APPROVED=YES \
+OPENWA_OFFSITE_BACKUP_CONFIGURED=YES \
+deploy/scripts/deploy.sh
+```
+
+These approvals are process gates, not credentials. Do not save them in `.env.production`, because
+that file is passed into the application container.
 
 Monitor container health, session status, restarts, resident memory, CPU, host RAM/swap, disk,
 volume size, log growth, Chromium errors, disconnects, QR regeneration, WhatsApp restrictions,

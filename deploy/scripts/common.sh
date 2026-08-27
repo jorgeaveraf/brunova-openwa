@@ -3,12 +3,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Used by scripts that source this library; it is intentionally not consumed inside common.sh.
+# shellcheck disable=SC2034
 REPO_ROOT="$(cd "$DEPLOY_DIR/.." && pwd)"
 COMPOSE_FILE="$DEPLOY_DIR/compose.production.yml"
 ENV_FILE="${OPENWA_ENV_FILE:-$DEPLOY_DIR/.env.production}"
 
 compose() {
-  docker compose --project-directory "$DEPLOY_DIR" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+  OPENWA_RUNTIME_ENV_FILE="$ENV_FILE" \
+    docker compose --project-directory "$DEPLOY_DIR" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
 }
 
 die() {

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 umask 077
+# shellcheck source=deploy/scripts/common.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
 [ "$#" -eq 2 ] || die 'usage: update.sh <version> <registry/image@sha256:digest>'
