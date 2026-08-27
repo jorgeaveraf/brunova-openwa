@@ -6,7 +6,7 @@ every item below has current evidence for the target VPS and exact image digest.
 | Gate | Current state | Evidence required to clear it |
 | --- | --- | --- |
 | High-severity `puppeteer` / `extract-zip` dependency chain | Blocked | A fixed upstream release and a clean production dependency audit. Do not patch the upstream application ad hoc. |
-| Independent container image scan | Pending | Trivy or Grype must scan the exact AMD64 digest with no unresolved high/critical findings accepted silently. |
+| Independent container image scan | Blocked | Trivy scanned the exact AMD64 digest on 2026-08-27 and reported 239 OS findings (218 high, 21 critical) plus one high `extract-zip` finding. Rebuild from a remediated upstream image and require a clean/reviewed rescan; accept nothing silently. |
 | Linked-session stability | Locally passed | The local five-minute and restart validation passed previously; repeat the same proof on the VPS before production use. |
 | Read-only VPS preflight | Pending | `deploy/scripts/preflight-vps.sh` must finish with `GLOBAL=PASS` or an explicitly reviewed `GLOBAL=WARN`. |
 | Nginx and TLS boundary | Pending | Approved hostname, certificate, restrictive proxy configuration and successful `nginx -t`. |
