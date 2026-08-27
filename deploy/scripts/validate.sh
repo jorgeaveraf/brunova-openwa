@@ -9,7 +9,7 @@ require_command jq
 require_command rg
 [ -f "$ENV_FILE" ] || die "missing $ENV_FILE; run deploy/scripts/init-secrets.sh"
 
-mode="$(stat -f '%Lp' "$ENV_FILE" 2>/dev/null || stat -c '%a' "$ENV_FILE")"
+mode="$(stat -c '%a' "$ENV_FILE" 2>/dev/null || stat -f '%Lp' "$ENV_FILE")"
 case "$mode" in 600|400) ;; *) die "$ENV_FILE permissions are $mode; expected 600 or 400" ;; esac
 
 for key in OPENWA_IMAGE API_PORT NODE_ENV API_MASTER_KEY API_KEY_PEPPER ENGINE_TYPE DATABASE_TYPE STORAGE_TYPE; do
