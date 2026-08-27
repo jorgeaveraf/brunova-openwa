@@ -22,9 +22,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install shellcheck
+      - name: Install overlay validation tools
         timeout-minutes: 5
-        run: command -v shellcheck >/dev/null || { sudo apt-get update && sudo apt-get install -y --no-install-recommends shellcheck; }
+        run: |
+          if ! command -v shellcheck >/dev/null || ! command -v rg >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends shellcheck ripgrep
+          fi
 
       - name: Validate tracked policy and scripts
         run: |
@@ -49,8 +53,10 @@ jobs:
       - name: Stop ephemeral stack
         if: always()
         run: |
-          OPENWA_RUNTIME_ENV_FILE="$OPENWA_CI_ENV" docker compose --project-directory deploy --env-file "$OPENWA_CI_ENV" -f deploy/compose.production.yml down -v || true
-          : > "$OPENWA_CI_ENV"
+          if [ -n "${OPENWA_CI_ENV:-}" ] && [ -f "$OPENWA_CI_ENV" ]; then
+            OPENWA_RUNTIME_ENV_FILE="$OPENWA_CI_ENV" docker compose --project-directory deploy --env-file "$OPENWA_CI_ENV" -f deploy/compose.production.yml down -v || true
+            : > "$OPENWA_CI_ENV"
+          fi
 
       - name: Gitleaks overlay history scan
         env:
