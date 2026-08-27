@@ -1,0 +1,65 @@
+name: brunova-openwa
+
+services:
+  openwa:
+    image: ${OPENWA_IMAGE:?Set OPENWA_IMAGE to an immutable version and digest}
+    container_name: brunova-openwa
+    restart: unless-stopped
+    stop_grace_period: 45s
+    env_file:
+      - .env.production
+    environment:
+      HOME: /tmp
+      XDG_CONFIG_HOME: /tmp/.config
+      XDG_CACHE_HOME: /tmp/.cache
+    ports:
+      - "127.0.0.1:${API_PORT:-2785}:2785"
+    volumes:
+      - openwa-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    shm_size: 256m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # The image entrypoint starts as root only to repair named-volume ownership, then
+    # immediately drops to the unprivileged openwa user through gosu.
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    mem_limit: ${OPENWA_MEM_LIMIT:-1280m}
+    cpus: ${OPENWA_CPU_LIMIT:-1.0}
+    pids_limit: ${OPENWA_PIDS_LIMIT:-768}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://127.0.0.1:2785/api/health/ready',
+          r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    networks:
+      - openwa-egress
+
+volumes:
+  openwa-data:
+    name: brunova_openwa_data
+
+networks:
+  openwa-egress:
+    name: brunova_openwa_egress
+    driver: bridge

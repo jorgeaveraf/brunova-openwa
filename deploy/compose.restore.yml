@@ -1,0 +1,8 @@
+services:
+  # The upstream restore script creates a safety snapshot beside /app/data before it
+  # overwrites anything. Only this short-lived, offline recovery container needs a
+  # writable root filesystem. The wrapper bypasses the normal privilege-dropping entrypoint for
+  # this offline operation because the snapshot is a sibling of /app/data; the regular service
+  # remains read-only and immediately drops to openwa.
+  openwa:
+    read_only: false
