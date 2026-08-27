@@ -44,18 +44,35 @@ Observed resources:
 | Healthy, before session | 135.1–135.8 MiB | 0–2.18% | 12 | 337 KiB |
 | Unlinked session at `qr_ready` | 559–689.7 MiB | 1.88–40.94% | 152 | about 25.4 MiB |
 | Final, stopped session/profile retained | 143.1 MiB | 0% one-shot | 12 | 27.59 MiB |
+| Linked session, 5-minute active-idle sample | 487–913.1 MiB | 9.09–100.33% | 155–163 | about 153.4 MiB |
 
 The image occupies 533,999,103 bytes. Chromium spawned 10 OS processes; `/dev/shm` remained unused
 because the upstream/default launch arguments include `--disable-dev-shm-usage`. Initial healthy
 deployment completed in 36 seconds including the image pull; subsequent same-image deploy/rollback gates
 completed in 1–2 seconds while already healthy. The encrypted test archive was 13,086,752 bytes.
 
-The measured QR-ready working set leaves roughly 560 MiB below the 1.25 GiB ceiling. Retain the
-1.25 GiB, 1 CPU, and 768 PID limits initially: they provide browser spike headroom without exposing
-the 2 GiB upstream default on a 4 GiB shared VPS. Re-measure for at least five idle minutes after a
-human links a test account before production approval; the unlinked sample is not a substitute for
-steady-state active-session evidence.
+The linked-session peak leaves roughly 367 MiB below the 1.25 GiB ceiling. Retain the 1.25 GiB,
+1 CPU, and 768 PID limits initially: the CPU ceiling was reached briefly during a post-link
+sync/reload but health remained stable and use returned to 10–25%. Raise CPU to 1.25 only if active
+operation shows sustained saturation or reconnect timeouts and the shared VPS has measured headroom.
 
-Result: local mechanics are ready, but production approval is blocked by the high-severity npm audit
-chain, missing active linked-session measurements, no authenticated independent image scan, and the
-fact that TLS/Nginx/off-host backup/VPS contention have only been prepared, not exercised.
+## Post-link validation
+
+After a human linked the test number, the single session reported `ready`, `engineLoaded=true`, a
+persisted phone and push name, no error, and no account restriction. The number was redacted in test
+output. Twenty samples over five minutes showed the range in the table above; the two 100% CPU
+samples and 913.1 MiB memory peak recovered without an OOM, health failure, or restart. Chromium had
+12 browser-related processes, all owned by `openwa`; summed process RSS was 1.50 GiB but double-counts
+shared mappings, so the 913.1 MiB cgroup measurement is authoritative. `/dev/shm` remained unused.
+
+No webhook or automation rule was configured. The session was stopped cleanly, Chromium reached
+zero processes, and a 97,689,632-byte encrypted backup was created. After setting
+`AUTO_START_SESSIONS=true` and force-recreating the container, the persisted linked session returned
+automatically to `ready` in 59 seconds. Post-recreate smoke tests passed, restart count remained zero,
+no OOM occurred, and the new container logs contained no API secret, full phone number, QR payload,
+or Chromium error match. The linked backup refused plaintext tar parsing and decrypted with its
+internal checksum manifest present. No send endpoint was invoked.
+
+Result: local mechanics and active-session recovery are ready, but production approval is blocked by
+the high-severity npm audit chain, no authenticated independent image scan, and the fact that
+TLS/Nginx/off-host backup/VPS contention have only been prepared, not exercised.
