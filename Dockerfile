@@ -9,10 +9,10 @@
 # minifier) optional dependency fails to install ("Cannot find module lightningcss.linux-arm64-gnu.node").
 # The per-arch runtime deps are installed natively in the target-platform production stage below.
 # NOTE: $BUILDPLATFORM requires BuildKit (CI uses buildx; modern `docker build`/compose default to it).
-# The digest pins the multi-arch node:22-slim index, so every build starts from the same immutable
+# The digest pins the multi-arch node:22-trixie-slim index, so every build starts from the same immutable
 # base; dependabot's docker ecosystem proposes the new digest when the tag moves. Update tag and
 # digest together.
-FROM --platform=$BUILDPLATFORM docker.io/node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/node:22-trixie-slim@sha256:7b8a0c89c54499bee567618f96578e1a12a800f062fbdbfd1fb6a443fa6f6284 AS builder
 
 WORKDIR /app
 
@@ -55,8 +55,8 @@ COPY . .
 RUN npm run build && npm run dashboard:ci -- --include=dev && npm run dashboard:build && rm -f dist/*.tsbuildinfo
 
 # ===== Stage 2: Production =====
-# Same digest-pinned node:22-slim base as the builder stage.
-FROM docker.io/node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS production
+# Same digest-pinned node:22-trixie-slim base as the builder stage.
+FROM docker.io/node:22-trixie-slim@sha256:7b8a0c89c54499bee567618f96578e1a12a800f062fbdbfd1fb6a443fa6f6284 AS production
 
 # Run the app with production defaults from the first boot: an unset NODE_ENV selects the
 # development branch of the CORS/Swagger/DTO-error-detail/default-secret hardening (main.ts
@@ -77,6 +77,11 @@ ENV NODE_ENV=production
 # --no-sandbox would otherwise get a chromium that can't launch. Verified on real arm64 hardware:
 # with --no-install-recommends the package is dropped, and chromium launches fine under --no-sandbox.
 ARG TARGETARCH
+# The normal published image keeps PostgreSQL backup tooling, FFmpeg and the operator npm CLI.
+# Brunova's SQLite-only PoC sets this true to remove those optional request paths and their
+# transitive dependency trees. Keeping this an explicit build argument makes both profiles
+# reproducible without silently reducing the capabilities of the general image.
+ARG OPENWA_MINIMAL_RUNTIME=false
 # sqlite3 ships the CLI so an in-container scripts/backup.sh run takes online-consistent SQLite
 # snapshots (.backup) instead of plain-copying a live database (which can archive a torn file). The
 # DATABASE_TYPE=postgres half of the same script needs pg_dump, installed further down.
@@ -87,7 +92,7 @@ ARG TARGETARCH
 # cost with --no-install-recommends: ~210 MB, and no new fixable CRITICAL/HIGH findings under the
 # release image scan. It is the Debian package rather than a bundled static build precisely so that
 # codec CVEs arrive through the same security stream as everything else here.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     $([ "$TARGETARCH" = arm64 ] && echo "chromium chromium-sandbox") \
     fonts-liberation \
     libappindicator3-1 \
@@ -112,7 +117,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     procps \
     sqlite3 \
-    ffmpeg \
+    $([ "$OPENWA_MINIMAL_RUNTIME" != true ] && echo "ffmpeg") \
     && rm -rf /var/lib/apt/lists/*
 
 # The PostgreSQL client for the DATABASE_TYPE=postgres half of backup.sh/restore.sh, which the
@@ -151,10 +156,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # keyring and NO_PUBKEY 7FCC7D46ACCC4CF8. The `.gitattributes` rule keeps fresh clones on LF; the
 # strip below repairs the Windows clones already on disk, which that rule cannot reach.
 COPY scripts/pgdg-ACCC4CF8.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
-RUN sed -i 's/\r$//' /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
-    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
-http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-    && apt-get update && apt-get install -y --no-install-recommends postgresql-client-17 \
+RUN if [ "$OPENWA_MINIMAL_RUNTIME" = true ]; then \
+        rm -f /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc; \
+    else \
+        sed -i 's/\r$//' /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+        && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+        && apt-get update \
+        && apt-get install -y --no-install-recommends postgresql-client-17; \
+    fi \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Puppeteer to skip automatic download during npm install (we download it explicitly below)
@@ -209,7 +219,8 @@ RUN npm ci --omit=dev --ignore-scripts \
 # Deliberately AFTER `npm ci`, so the application tree is still resolved by the npm the lockfile
 # was generated with and only the global CLI is swapped. Pinned to the exact patch release —
 # a floating npm@12 would make the image's bundled npm tree depend on when the build happened.
-RUN npm install -g npm@12.0.2 && npm cache clean --force
+RUN if [ "$OPENWA_MINIMAL_RUNTIME" != true ]; then npm install -g npm@12.0.2; fi \
+    && npm cache clean --force
 
 # amd64: download Chrome for Testing via Puppeteer and symlink it.
 # arm64: use Debian's chromium installed above (CfT has no linux-arm64 build).
@@ -223,6 +234,15 @@ RUN if [ "$TARGETARCH" = arm64 ]; then \
         chrome_path=$(find /opt/puppeteer/chrome/linux*/chrome-linux64/chrome | head -n 1) && \
         test -n "$chrome_path" && \
         ln -s "$chrome_path" /usr/local/bin/puppeteer-chrome; \
+    fi
+
+# Install-time tools have completed their work. The minimal profile removes their independent
+# dependency trees; the application entrypoint is `node dist/main` and the Brunova runbooks use
+# direct scripts rather than npm inside the container.
+RUN if [ "$OPENWA_MINIMAL_RUNTIME" = true ]; then \
+        apt-get purge -y patch \
+        && rm -rf /usr/local/lib/node_modules/npm /opt/yarn-v* \
+        && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg; \
     fi
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/puppeteer-chrome
 

@@ -1,0 +1,1 @@
+["brunova/openwa@sha256:ed99e16605fc6d9e83a1cc2ea7f6f20daa6c8aae9d909e7037afd8e36fa9171d"] sha256:ed99e16605fc6d9e83a1cc2ea7f6f20daa6c8aae9d909e7037afd8e36fa9171d amd64

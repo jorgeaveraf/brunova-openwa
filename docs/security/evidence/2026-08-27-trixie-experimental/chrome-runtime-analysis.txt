@@ -1,0 +1,74 @@
+CHROME=/opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome
+DIRECT_SYMBOL_REFERENCES
+g_dbus_node_info_new_for_xml=absent_from_chrome_binary
+xmlParseInternalSubset=absent_from_chrome_binary
+mbedtls_dhm_read_public=absent_from_chrome_binary
+mbedtls_dhm_calc_secret=absent_from_chrome_binary
+BUNDLED_LIBRARY_REFERENCES
+
+CHROME_LOG
+[8:23:0827/215951.037672:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[8:23:0827/215951.089680:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[8:23:0827/215951.093004:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[8:23:0827/215951.094170:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[8:23:0827/215951.203535:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[41:41:0827/215951.272287:ERROR:base/memory/shared_memory_switch.cc:289] Failed global descriptor lookup: 7
+[8:23:0827/215951.357184:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+
+DevTools listening on ws://127.0.0.1:9223/devtools/browser/3ef61ca8-a3c9-45f2-a871-56b8ce1eb58c
+[8:8:0827/215951.575794:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[8:23:0827/215951.576005:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[8:8:0827/215951.579137:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[8:8:0827/215951.596221:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[8:23:0827/215951.738777:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+
+MAIN_PID=8
+TARGET_MAPS
+/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.38.3
+/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4
+
+ALL_CHROME_PROCESS_TARGET_MAPS
+PID=1 /bin/sh -c
+set -eu
+mkdir -p /tmp/.config /tmp/.cache /tmp/profile
+/usr/local/bin/puppeteer-chrome --headless=new --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/profile --remote-debugging-port=9223 about:blank >/tmp/chrome.log 2>&1 &
+pid=$!
+for i in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$pid" 2>/dev/null || break; grep -q "DevTools listening" /tmp/chrome.log && break; sleep 1; done
+printf "\nCHROME_LOG\n"; sed -n "1,120p" /tmp/chrome.log
+printf "\nMAIN_PID=%s\n" "$pid"
+printf "TARGET_MAPS\n"; grep -E "lib(glib|gio|dbus|mbed|xml2|perl)" "/proc/$pid/maps" | awk "{print \$6}" | sort -u || true
+printf "\nALL_CHROME_PROCESS_TARGET_MAPS\n"
+for p in $(pgrep -f "/opt/puppeteer/.*/chrome" || true); do
+  [ -r "/proc/$p/maps" ] || continue
+  printf "PID=%s " "$p"; tr "\\0" " " < "/proc/$p/cmdline" | cut -c1-180; echo
+  grep -E "lib(glib|gio|dbus|mbed|xml2|perl)" "/proc/$p/maps" | awk "{print \$6}" | sort -u || true
+done
+kill "$pid" 2>/dev/null || true
+wait "$pid" 2>/dev/null || true
+
+
+PID=12 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/tmp/.config/google-chro
+
+PID=14 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome --type=zygote --no-zygote-sandbox --no-sandbox --headless=new --crashpad-handler-pid=0 --enable-crash-reporter=, --n
+
+/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.38.3
+/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4
+PID=15 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome --type=zygote --no-sandbox --headless=new --crashpad-handler-pid=0 --enable-crash-reporter=, --noerrdialogs --user-d
+
+/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.38.3
+/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4
+PID=17 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/tmp/.config/google
+
+PID=36 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome --type=zygote --no-zygote-sandbox --no-sandbox --headless=new --crashpad-handler-pid=0 --enable-crash-reporter=, --n
+
+/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.38.3
+/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4
+PID=63 /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome --type=zygote --no-sandbox --headless=new --crashpad-handler-pid=0 --enable-crash-reporter=, --noerrdialogs --user-d
+
+/usr/lib/x86_64-linux-gnu/libdbus-1.so.3.38.3
+/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4

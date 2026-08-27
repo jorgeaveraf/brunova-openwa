@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "imageId": "sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7",
+  "productId": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7",
+  "input": {
+    "records": 40,
+    "uniqueCritical": 5,
+    "uniqueHigh": 26,
+    "fixableCriticalOrHigh": 0
+  },
+  "vex": {
+    "notAffectedCritical": [
+      "CVE-2026-13221",
+      "CVE-2026-42496",
+      "CVE-2026-58016",
+      "CVE-2026-6653",
+      "CVE-2026-8376"
+    ],
+    "unresolvedCritical": []
+  },
+  "decision": "PASS"
+}

@@ -1,0 +1,58 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://brunova.mx/security/vex/openwa-poc/2026-08-27",
+  "author": "Brunova Technical Security",
+  "timestamp": "2026-08-27T16:18:00-06:00",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": { "name": "CVE-2026-34873" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "The minimal runtime contains neither libmbedcrypto nor the Mbed TLS protocol stack; Chrome for Testing uses BoringSSL. Evidence: candidate-runtime-analysis.txt and candidate SBOM. Invalidation condition: adding Mbed TLS packages or a binary linked to them requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-34875" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "The vulnerable Mbed TLS FFDH public-key export implementation is absent with all Mbed TLS packages removed. Evidence: candidate-runtime-analysis.txt and candidate SBOM. Invalidation condition: adding Mbed TLS packages or FFDH consumers requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-42496" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "Trivy maps the Perl source advisory to essential perl-base, but the vulnerable Archive::Tar module and _make_special_file implementation are absent after perl-modules removal. Evidence: candidate-runtime-analysis.txt. Invalidation condition: installing Archive::Tar or perl-modules requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-8376" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The advisory's integer-width precondition is limited to 32-bit Perl builds. The artifact is linux/amd64, LONG_BIT=64, dpkg architecture amd64, and has no foreign architecture. Evidence: Debian tracker and candidate-runtime-analysis.txt. Invalidation condition: producing a 32-bit or multiarch runtime requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-13221" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Only Debian-essential perl-base remains. The Node entrypoint, health, SQLite backup/restore, Chrome path, and tested API/session paths do not invoke Perl; PostgreSQL's Perl pg_wrapper is removed. Evidence: candidate-runtime-analysis.txt and regression-summary.md. Invalidation condition: any runtime path invoking Perl, especially with attacker-controlled regular expressions, requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-6653" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Debian's libxml2 package is affected, but FFmpeg was its only OpenWA feature consumer and is removed. Node, Chrome for Testing, SQLite, gosu and dumb-init do not dynamically link libxml2; the same-image headless Chrome map did not load it. Evidence: candidate-runtime-analysis.txt and chrome-runtime-analysis.txt. Invalidation condition: adding FFmpeg, an XML parser, or any runtime executable that loads libxml2 requires renewed analysis."
+    },
+    {
+      "vulnerability": { "name": "CVE-2026-58016" },
+      "products": [{ "@id": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "GLib/GIO are loaded by headless Chrome, but exploitation requires an application to pass attacker-controlled D-Bus introspection XML to g_dbus_node_info_new_for_xml. Chrome has no direct import/reference to that symbol; the container has no system/session D-Bus socket or DBUS address, and standalone runtime logs show all bus connections fail. WhatsApp page data has no route to a D-Bus introspection consumer. Evidence: candidate-runtime-analysis.txt and chrome-runtime-analysis.txt. Invalidation condition: mounting/exposing D-Bus, setting a DBUS address, adding a consumer of g_dbus_node_info_new_for_xml, or accepting untrusted introspection XML requires renewed analysis."
+    }
+  ]
+}

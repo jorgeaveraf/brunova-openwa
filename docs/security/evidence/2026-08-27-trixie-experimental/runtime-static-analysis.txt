@@ -1,0 +1,201 @@
+ARCHITECTURE
+amd64
+foreign=
+getconf_LONG_BIT=64
+node_arch=x64
+
+PACKAGES
+perl	5.40.1-6
+perl-base	5.40.1-6
+libperl5.40:amd64	5.40.1-6
+perl-modules-5.40	5.40.1-6
+libglib2.0-0t64:amd64	2.84.4-3~deb13u3
+libmbedcrypto16:amd64	3.6.5-0.1~deb13u1
+libxml2:amd64	2.12.7+dfsg+really2.9.14-2.1+deb13u3
+ffmpeg	7:7.1.5-0+deb13u1
+postgresql-client-17	17.11-1.pgdg13+2
+postgresql-client-common	293.pgdg13+1
+
+KEY_FILES
+/usr/bin/perl -> /usr/bin/perl
+/usr/bin/pg_dump -> /usr/share/postgresql-common/pg_wrapper
+/usr/bin/psql -> /usr/share/postgresql-common/pg_wrapper
+/usr/bin/ffmpeg -> /usr/bin/ffmpeg
+/usr/local/bin/puppeteer-chrome -> /opt/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome
+/usr/local/bin/node -> /usr/local/bin/node
+/usr/sbin/gosu -> /usr/sbin/gosu
+/usr/bin/dumb-init -> /usr/bin/dumb-init
+
+DIRECT_LINKAGE
+[/usr/bin/ffmpeg]
+	libxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007ffff8cd4000)
+	libglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0 (0x00007ffff7847000)
+	libdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3 (0x00007ffff2dd2000)
+	libmbedcrypto.so.16 => /lib/x86_64-linux-gnu/libmbedcrypto.so.16 (0x00007ffff0f1c000)
+	libgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007ffff0d18000)
+[/usr/local/bin/puppeteer-chrome]
+	libglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0 (0x00007fffef0db000)
+	libgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007fffeec71000)
+	libdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3 (0x00007fffeebb2000)
+[/usr/local/bin/node]
+(none of target libs direct)
+[/usr/bin/sqlite3]
+(none of target libs direct)
+[/usr/lib/postgresql/17/bin/pg_dump]
+(none of target libs direct)
+[/usr/lib/postgresql/17/bin/psql]
+(none of target libs direct)
+[/usr/sbin/gosu]
+(none of target libs direct)
+[/usr/bin/dumb-init]
+(none of target libs direct)
+
+LIBRARY_OWNERS
+libglib2.0-0t64:amd64: /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0
+libglib2.0-0t64:amd64: /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8400.4
+libglib2.0-0t64:amd64: /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0
+libglib2.0-0t64:amd64: /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.8400.4
+libmbedcrypto16:amd64: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so.16
+libmbedcrypto16:amd64: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so.3.6.5
+libxml2:amd64: /usr/lib/x86_64-linux-gnu/libxml2.so.2
+libxml2:amd64: /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14
+
+VULNERABLE_SYMBOL_STRINGS
+g_dbus_node_info_new_for_xml
+xmlParseInternalSubset
+
+PERL_ARCHIVE_TAR
+Archive::Tar=0024Archive::Tar::VERSION
+perl-modules-5.40: /usr/share/perl/5.40.1/Archive/Tar.pm
+
+DBUS_STATE
+no_system_bus_socket
+DBUS_SESSION_BUS_ADDRESS=
+
+MANUAL_PACKAGES
+curl
+dumb-init
+ffmpeg
+fonts-liberation
+gosu
+libasound2t64
+libatk-bridge2.0-0t64
+libatk1.0-0t64
+libayatana-appindicator3-1
+libc6
+libcups2t64
+libdbus-1-3
+libdrm2
+libgbm1
+libgcc-s1
+libgtk-3-0t64
+libnspr4
+libnss3
+libstdc++6
+libx11-xcb1
+libxcomposite1
+libxdamage1
+libxrandr2
+patch
+postgresql-client-17
+procps
+sqlite3
+xdg-utils
+
+REPO_RUNTIME_REFERENCES
+Dockerfile:82:# DATABASE_TYPE=postgres half of the same script needs pg_dump, installed further down.
+Dockerfile:84:# ffmpeg backs the opt-in media-conversion endpoints, and also repairs an existing gap: whatsapp-web.js
+Dockerfile:85:# requires fluent-ffmpeg at module load and calls it for video-to-webp animated stickers, so
+Dockerfile:98:    libdbus-1-3 \
+Dockerfile:115:    ffmpeg \
+Dockerfile:119:# runbook drives in-container. Debian bookworm ships client 15 and pg_dump refuses a newer server
+Dockerfile:121:# bundled compose file runs), so the distro package would install a pg_dump that cannot dump our own
+Dockerfile:122:# stack, and psql would be missing for restore. PGDG is PostgreSQL's own apt repository and carries
+Dockerfile:140:# libreadline8), including a full perl interpreter: /usr/bin/pg_dump is a symlink to
+Dockerfile:141:# postgresql-common's pg_wrapper, which is a perl script. Trivy on the built image, with the release
+Dockerfile:142:# job's own settings (CRITICAL,HIGH + ignore-unfixed + .trivyignore): 0 findings, the bar the ffmpeg
+Dockerfile:143:# layer above was held to. Counting unfixed ones too, the perl packages carry 8 CRITICAL/HIGH with
+Dockerfile:144:# no upstream fix, but every one of them is a CVE the base image ALREADY had through perl-base
+scripts/postgres-init-schema.sh:46:psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
+src/config/configuration.ts:464:  // shapes WhatsApp clients actually play, by running the ffmpeg binary. Nothing is converted
+src/config/configuration.ts:469:    // enabling it on a host without ffmpeg degrades to a clear 503 rather than a spawn error.
+src/config/configuration.ts:472:    ffmpegPath: process.env.FFMPEG_PATH || 'ffmpeg',
+src/config/configuration.ts:485:    // At most this many ffmpeg processes at once (default 2). Each conversion spawns an external
+scripts/backup.sh:7:#   - data store    — openwa.sqlite (SQLite) OR a pg_dump (when DATABASE_TYPE=postgres)
+scripts/backup.sh:128:  log "Backing up data store via pg_dump"
+scripts/backup.sh:129:  if ! command -v pg_dump >/dev/null 2>&1; then
+scripts/backup.sh:130:    log "ERROR: DATABASE_TYPE=postgres but pg_dump is not installed"
+scripts/backup.sh:135:    pg_dump "$DATABASE_URL_RESOLVED" >"$STAGE/database.sql"
+scripts/backup.sh:139:    PGPASSWORD="$(openwa_resolve DATABASE_PASSWORD '')" pg_dump \
+scripts/restore.sh:7:# PostgreSQL dumps are staged for the explicit psql import printed at the end of the restore.
+scripts/restore.sh:344:  log "  psql \"\$DATABASE_URL\" < $DATA_DIR/database.sql"
+src/modules/webhook/webhook-delivery.service.spec.ts:224:      // Mock hook to return the payload properly
+src/modules/docker/compose-parity.spec.ts:425: * The image's pg_dump/psql must never be OLDER than the Postgres it talks to: pg_dump refuses a
+src/modules/media/ffmpeg.ts:6:/** A conversion that ffmpeg refused, timed out on, or produced too much output for. */
+src/modules/media/ffmpeg.ts:10:    /** ffmpeg's own last words, already trimmed. Empty when it never got that far. */
+src/modules/media/ffmpeg.ts:20:  ffmpegPath: string;
+src/modules/media/ffmpeg.ts:30: * `-protocol_whitelist file` is the load-bearing one. ffmpeg treats its input as a URL, and given an
+src/modules/media/ffmpeg.ts:33: * wrote, so restricting ffmpeg to the file protocol costs nothing and removes the whole class:
+src/modules/media/ffmpeg.ts:92: * Convert `input` by running ffmpeg once, and return the produced bytes.
+src/modules/media/ffmpeg.ts:100: * caller sends can be read as an ffmpeg option.
+src/modules/media/ffmpeg.ts:133:/** Spawn ffmpeg and resolve when it exits 0, else reject with whatever it wrote to stderr. */
+src/modules/media/ffmpeg.ts:138:    const child = spawn(options.ffmpegPath, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+src/modules/media/ffmpeg.ts:161:      reject(new FfmpegConversionError(`Could not run ffmpeg: ${err instanceof Error ? err.message : String(err)}`));
+src/modules/media/ffmpeg.ts:169:        reject(new FfmpegConversionError(`ffmpeg exited with code ${code}`, stderr.trim()));
+src/modules/media/ffmpeg.ts:183:export async function probeFfmpeg(ffmpegPath: string, timeoutMs = 5_000): Promise<boolean> {
+src/modules/media/ffmpeg.ts:185:    await execute(['-version'], { ffmpegPath, timeoutMs, maxOutputBytes: 0 });
+src/modules/media/ffmpeg.spec.ts:1:import { buildFfmpegArgs, voiceEncodeArgs, videoEncodeArgs } from './ffmpeg';
+src/modules/media/ffmpeg.spec.ts:7: * The scale quoting is not cosmetic. ffmpeg splits a filter description on commas, so the comma
+src/modules/media/ffmpeg.spec.ts:13:describe('ffmpeg encoder arguments', () => {
+src/modules/media/ffmpeg.spec.ts:54:    // The regression this exists for: unquoted, ffmpeg reads the filter as `scale=min(1280`.
+src/modules/media/ffmpeg.spec.ts:67: * ffmpeg resolves its input as a URL, and left unrestricted it will make the request: pointed at an
+src/modules/media/ffmpeg.spec.ts:69: * endpoint. The input here is always a file this process just wrote, so confining ffmpeg to the file
+src/modules/media/ffmpeg.spec.ts:73:describe('ffmpeg invocation shape', () => {
+src/modules/media/ffmpeg.spec.ts:76:  it('confines ffmpeg to the file protocol', () => {
+src/modules/media/ffmpeg.spec.ts:90:  // Encoder flags have to land between the input and the output; ffmpeg applies options positionally,
+src/modules/media/ffmpeg-run.spec.ts:4:import { FfmpegConversionError, probeFfmpeg, runFfmpeg } from './ffmpeg';
+src/modules/media/ffmpeg-run.spec.ts:10: * It runs against a stub standing in for ffmpeg rather than the real binary, for two reasons: the
+src/modules/media/ffmpeg-run.spec.ts:12: * a suite that needed ffmpeg installed would simply be skipped on most machines, which is the same
+src/modules/media/ffmpeg-run.spec.ts:22:    workDir = await mkdtemp(join(tmpdir(), 'openwa-ffmpeg-stub-'));
+src/modules/media/ffmpeg-run.spec.ts:23:    stubPath = join(workDir, 'fake-ffmpeg');
+src/modules/media/ffmpeg-run.spec.ts:24:    // Behaves like ffmpeg to the degree this code depends on: writes the file named last, and
+src/modules/media/ffmpeg-run.spec.ts:33:if [ "$1" = "-version" ]; then echo "ffmpeg version stub"; exit 0; fi
+src/modules/media/ffmpeg-run.spec.ts:55:    ffmpegPath: stubPath,
+src/modules/media/ffmpeg-run.spec.ts:123:      runFfmpeg(Buffer.from('input'), 'bin', 'ogg', [], options({ ffmpegPath: join(workDir, 'not-here') })),
+src/modules/media/ffmpeg-run.spec.ts:126:      runFfmpeg(Buffer.from('input'), 'bin', 'ogg', [], options({ ffmpegPath: join(workDir, 'not-here') })),
+src/modules/media/ffmpeg-run.spec.ts:127:    ).rejects.toThrow(/Could not run ffmpeg/);
+src/modules/media/media-conversion.service.spec.ts:4:import * as ffmpeg from './ffmpeg';
+src/modules/media/media-conversion.service.spec.ts:8: * The behaviours worth pinning here are the ones a caller can reach: that a host without ffmpeg says
+src/modules/media/media-conversion.service.spec.ts:10: * most of all — that a remote URL is fetched through the SSRF guard and never handed to ffmpeg,
+src/modules/media/media-conversion.service.spec.ts:17:      'mediaConversion.ffmpegPath': 'ffmpeg',
+src/modules/media/media-conversion.service.spec.ts:32:    runFfmpeg = jest.spyOn(ffmpeg, 'runFfmpeg').mockResolvedValue(Buffer.from('converted-bytes'));
+src/modules/media/media-conversion.service.spec.ts:33:    probeFfmpeg = jest.spyOn(ffmpeg, 'probeFfmpeg').mockResolvedValue(true);
+src/modules/media/media-conversion.service.spec.ts:46:    // Enabling the flag on a host with no ffmpeg must be a clear answer, not a spawn error.
+src/modules/media/media-conversion.service.spec.ts:51:      await expect(service.convertToVoice({ base64: 'AAAA' })).rejects.toThrow(/ffmpeg binary could not be run/);
+src/modules/media/media-conversion.service.spec.ts:73:    // The point of the whole endpoint shape: ffmpeg is handed BYTES, never a URL. Given a URL it
+src/modules/media/media-conversion.service.spec.ts:75:    it('fetches a URL through the SSRF guard and gives ffmpeg the bytes, not the URL', async () => {
+src/modules/media/media-conversion.service.spec.ts:86:      // Nothing resembling the URL may appear anywhere in the ffmpeg call.
+src/modules/media/media-conversion.service.spec.ts:142:    // ffmpeg's complaint is about the caller's own bytes, so surfacing it is what makes a 400 useful.
+src/modules/media/media-conversion.service.spec.ts:143:    it('turns an ffmpeg refusal into a 400 carrying its reason', async () => {
+src/modules/media/media-conversion.service.spec.ts:144:      runFfmpeg.mockRejectedValue(new ffmpeg.FfmpegConversionError('ffmpeg exited with code 1', 'Invalid data found'));
+src/modules/media/media-conversion.service.spec.ts:161:    // The rate limiter caps admission per second, not how many long-running ffmpeg processes stack
+src/modules/media/media-conversion.service.spec.ts:163:    it('bounds concurrent ffmpeg runs and answers 503 past the queue instead of stacking processes', async () => {
+src/modules/media/media.controller.ts:31:      'Reports whether conversion is switched on AND the ffmpeg binary can be run, so a client can ' +
+src/modules/media/media.controller.ts:51:  @ApiResponse({ status: 400, description: 'Neither url nor base64 given, or ffmpeg refused the input.' })
+src/modules/media/media.controller.ts:56:      'Conversion is disabled, the ffmpeg binary is not runnable, or the conversion queue is saturated — retry shortly.',
+src/modules/media/media.controller.ts:73:  @ApiResponse({ status: 400, description: 'Neither url nor base64 given, or ffmpeg refused the input.' })
+src/modules/media/media.controller.ts:78:      'Conversion is disabled, the ffmpeg binary is not runnable, or the conversion queue is saturated — retry shortly.',
+src/modules/media/dto/convert-media.dto.ts:7: * No `mimetype` field: ffmpeg identifies the input from its contents, so a declared type would be
+src/modules/media/media-conversion.service.ts:8:import { FfmpegConversionError, probeFfmpeg, runFfmpeg, videoEncodeArgs, voiceEncodeArgs } from './ffmpeg';
+src/modules/media/media-conversion.service.ts:27:   * Bounds concurrent ffmpeg processes (the rate limiter caps admission per second, not how many
+src/modules/media/media-conversion.service.ts:32:  private readonly ffmpegGate: ConcurrencyLimiter;
+src/modules/media/media-conversion.service.ts:36:    this.ffmpegGate = new ConcurrencyLimiter(concurrency, concurrency * 4);
+src/modules/media/media-conversion.service.ts:72:      const output = await this.ffmpegGate.run(() =>
+src/modules/media/media-conversion.service.ts:74:          ffmpegPath: this.configService.get<string>('mediaConversion.ffmpegPath', 'ffmpeg'),
+src/modules/media/media-conversion.service.ts:86:        // ffmpeg's stderr is about the caller's own bytes, so returning it is what makes a rejection
+src/modules/media/media-conversion.service.ts:107:      // connection to the vetted address. ffmpeg itself never sees a URL — it is restricted to the
+src/modules/media/media-conversion.service.ts:135:        'Media conversion is enabled but the ffmpeg binary could not be run. Install ffmpeg, or set FFMPEG_PATH.',
+src/modules/media/media-conversion.service.ts:145:    this.binaryAvailable ??= probeFfmpeg(this.configService.get<string>('mediaConversion.ffmpegPath', 'ffmpeg')).then(
+src/modules/media/media-conversion.service.ts:147:        if (!available) this.logger.warn('Media conversion is enabled but ffmpeg could not be run');
+src/modules/media/dto/media-response.dto.ts:12:      'True only when conversion is switched on AND the ffmpeg binary is runnable. False means a ' +
+src/common/security/proxy-aware-throttler.guard.spec.ts:129: * These cases instantiate the guard properly rather than via `Object.create`: unlike `getTracker`,

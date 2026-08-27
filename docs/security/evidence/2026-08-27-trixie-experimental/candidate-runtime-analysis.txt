@@ -1,0 +1,30 @@
+image_platform	linux/amd64
+machine	x86_64
+pointer_bits	64
+dpkg_architecture	amd64
+foreign_architectures
+node_architecture	x64
+perl_path	/usr/bin/perl
+archive_tar_module	absent
+optional_commands
+ffmpeg	absent
+pg_dump	absent
+psql	absent
+npm	absent
+npx	absent
+yarn	absent
+patch	absent
+selected_packages
+libglib2.0-0t64:amd64	2.84.4-3~deb13u3
+libssl3t64:amd64	3.5.7-1~deb13u2
+libxml2:amd64	2.12.7+dfsg+really2.9.14-2.1+deb13u3
+openssl-provider-legacy	3.5.7-1~deb13u2
+perl-base	5.40.1-6
+mbedtls_packages
+chrome_direct_dependencies_matching_xml_mbed_perl
+chrome_symbol_references
+g_dbus_node_info_new_for_xml	absent
+xmlParseInternalSubset	absent
+psa_export_public_key	absent
+dbus_environment
+dbus_sockets
