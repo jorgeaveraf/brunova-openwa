@@ -21,6 +21,7 @@ coverage/
 .env.production.local
 deploy/.env.production
 deploy/.backup-passphrase
+deploy/.openwa-dashboard-credentials
 backups/
 .deploy-state/
 
