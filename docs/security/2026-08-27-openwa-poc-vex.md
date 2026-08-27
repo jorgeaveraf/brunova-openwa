@@ -15,9 +15,11 @@ The local image-security gate passes for the immutable candidate image ID
 - Zero fixable CRITICAL and zero fixable HIGH.
 - Full isolated regression passed.
 
-This is an artifact-local pass, not yet authorization to deploy: CI must reproduce it and the
-candidate must be pushed with provenance to the authorized Brunova GHCR namespace by immutable
-registry digest. The VPS remains untouched until those two conditions pass.
+CI reproduced the gate and published the candidate with provenance and SBOM. The immutable
+production reference is
+`ghcr.io/jorgeaveraf/brunova-openwa@sha256:96feea86223bb69b2fd70e974f42fe483ffa08df092e93e79ad6b1dd2d5551c2`.
+The registry-digest scan, VEX gate, and non-root smoke all passed in GitHub Actions run
+`33123144905`. Those conditions authorized the production PoC deployment described below.
 
 ## Seven-CVE normalization and applicability
 
@@ -94,6 +96,48 @@ therefore cannot inherit the local digest's pass silently.
 ## Security and deployment status
 
 No secret values, `.env` files, QR content, session material, or container layers are included in
-the evidence. The local test sent no WhatsApp message. Nginx, Certbot, the VPS, pairing, the PoC
-message, off-host backup, and production auto-start remain pending until CI and registry publication
-complete successfully.
+the evidence. Secret-bearing local and remote files remain outside Git with mode `0600`.
+
+## Production PoC closure
+
+The image-security decision is `IMAGE SECURITY PASS — CONTINUE`. The authorized production PoC
+then completed on the VPS at `69.48.202.231` from source commit
+`1ea7acbc1efdafac9a029c5b84ea3c16acc7922b`:
+
+- Cloudflare and Google independently returned only `A 69.48.202.231`; neither returned an AAAA
+  record.
+- The host had approximately 2.3 GiB available RAM plus 3 GiB swap before deployment. Existing
+  Brunova/n8n containers and unrelated Nginx sites were preserved.
+- One hardened `brunova-openwa` container runs the registry image by digest, with a read-only root
+  filesystem, dropped capabilities except the entrypoint ownership set, `no-new-privileges`, 1280
+  MiB memory, 1 CPU, 768 PIDs, and no Docker socket.
+- Port 2785 is bound only to `127.0.0.1`; an external connection attempt timed out. Initial usage was
+  about 135 MiB and 12 PIDs. With the linked Chromium engine active, the final sample was about
+  765 MiB and 112 PIDs; the container remained healthy with zero restarts.
+- Nginx terminates TLS for `wa.brunova.mx`, redirects HTTP to HTTPS, proxies WebSocket, protects the
+  dashboard with Basic authentication, leaves `/api/` under OpenWA API-key authentication, applies
+  API rate limiting, rotates dedicated logs, and returns 404 for public health, Swagger, and MCP.
+  The raw API returned 401 without a key and 200 with the production key; dashboard access returned
+  401/200 without/with its separate credential. The WebSocket upgrade returned 101.
+- Let's Encrypt issued a hostname-valid certificate expiring 2026-11-25. TLS 1.2/1.3, the active
+  renewal timer, and a full `certbot renew --dry-run` were verified.
+- Session `brunova-test` reached `qr_ready` without QR material being captured. Jorge performed the
+  human scan. Eleven samples over five minutes then remained `ready` with the engine loaded.
+- OpenWA's contact-check endpoint confirmed the authorized destination exists and supplied its
+  canonical WhatsApp identifier; no JID was guessed.
+- A durable local marker moved from `not_attempted` to `attempting` before the network call. Exactly
+  one POST was made with the authorized exact text. It returned HTTP 201; only the message-ID suffix
+  `BC7972B2_out` was retained. The asynchronous receipt advanced to `read`. No retry occurred and no
+  other destination was used.
+- Production auto-start was enabled after the PoC. A forced container recreation retained the
+  session credentials and message history; the WhatsApp engine reconnected without another QR and
+  stabilized at `ready`. The observed reconnect took longer than the initial two-minute probe but
+  completed normally with no container restart or session error.
+- A post-PoC encrypted backup named `openwa-backup-20260827-231513Z.tar.gz.enc` was copied off-host.
+  Its AES-256-CBC/PBKDF2 decryption, six-file structure, and complete SHA-256 manifest were verified;
+  the encrypted local copy is mode `0600`.
+
+The resulting classification is `PRODUCTION POC COMPLETE`. No image-security, deployment, pairing,
+delivery, TLS-renewal, or off-host-backup blocker remains. Operationally, WhatsApp auto-reconnect can
+take roughly three minutes, so monitoring must allow for the browser/engine initialization window
+after a container or host restart.
