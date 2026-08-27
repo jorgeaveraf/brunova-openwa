@@ -67,3 +67,78 @@ jobs:
         env:
           OPENWA_SMOKE_IMAGE: brunova/openwa:poc-security-ci
         run: ./scripts/smoke-test-non-root.sh
+
+  publish-authorized-candidate:
+    name: Publish and rescan immutable GHCR candidate
+    if: github.event_name == 'push'
+    needs: [amd64-minimal-runtime]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Login to the repository's authorized GHCR namespace
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve immutable candidate tag
+        id: image
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "ref=ghcr.io/${REPO,,}:poc-security-v0.23.3-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish with provenance and SBOM
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.image.outputs.ref }}
+          build-args: OPENWA_MINIMAL_RUNTIME=true
+          provenance: true
+          sbom: true
+          no-cache-filters: production
+          cache-from: type=gha,scope=brunova-poc-amd64
+          cache-to: type=gha,mode=max,scope=brunova-poc-amd64
+
+      - name: Scan the published registry digest
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: trivy-published.json
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+          exit-code: '0'
+
+      - name: Apply the reviewed VEX to the registry digest
+        env:
+          REGISTRY_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          jq --arg product "pkg:oci/brunova/openwa@$REGISTRY_DIGEST" \
+            '(.statements[].products[]["@id"]) = $product' \
+            docs/security/openvex.json > openvex-published.json
+          OPENWA_VEX_PRODUCT_DIGEST="$REGISTRY_DIGEST" \
+            node scripts/check-image-vex.mjs trivy-published.json openvex-published.json trivy-published-after-vex.json
+
+      - name: Verify the published digest drops privileges
+        env:
+          OPENWA_SMOKE_IMAGE: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+        run: ./scripts/smoke-test-non-root.sh
+
+      - name: Report immutable digest
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          REGISTRY_DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "Published and gated $IMAGE_REF@$REGISTRY_DIGEST"

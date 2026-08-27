@@ -12,7 +12,7 @@ cf2bfa74467da8d69aa710e83026fa6d92bf1b7fad33103442edfd51f3c570cb  ./sbom-before-
 79d67324102a1c4707b8320c1f008716d7178030694237bbf2f084f197131cfc  ./sbom-candidate.cdx.json
 7de95d5354426a4f21e9282bc617680f9647a18008a6712c4714a6838a7a9379  ./sbom-minimal.cdx.json
 66eb22757cbf1201000020ef800cd6c2ac752166a8e605aeaa16a3ac72e679b0  ./trivy-before-vex.json
-a8fe90c3f86ca44c4ac0487e9ba26752f6b2e0acf2eaa266a1fa23e9fd4e1ed3  ./trivy-candidate-after-vex.json
+16e06e2b39f3ee1901feb86d00ae69e78900e9f8a438f192ab8d09740c972f14  ./trivy-candidate-after-vex.json
 cc205c165f8af40825ce12fb7d606dee7a219cbfbbb230cf32a7d7bafc25055e  ./trivy-candidate-before-vex.json
 3567598c682572f79a28546649185d1f0df7b7fa875d6d915bfda932006094f3  ./trivy-minimal-before-vex.json
 5e21bf783bdf268a32cb82d7bd8f7cd27ecdd9ea1cc7626c9cba553f709d9317  ./trivy-version-with-db.json

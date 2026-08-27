@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "imageId": "sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7",
+  "productDigest": "sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7",
   "productId": "pkg:oci/brunova/openwa@sha256:49dbb3d6b9ae41f4b668fc99918b39aba7dd07ecf3099eb099762313a921e2e7",
   "input": {
     "records": 40,

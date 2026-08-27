@@ -86,8 +86,10 @@ exercise pass, fixable-finding failure, and unresolved-critical failure.
 
 `.github/workflows/brunova-poc-security.yml` rebuilds the AMD64 minimal profile from the pinned base,
 scans without `ignore-unfixed`, binds the reviewed assertions to that build's immutable image ID,
-runs the gate, and verifies the non-root runtime contract. A change in packages or findings therefore
-cannot inherit the local digest's pass silently.
+runs the gate, and verifies the non-root runtime contract. On a trusted `main` push, a dependent job
+then publishes a commit-qualified GHCR tag with provenance and SBOM, scans the registry digest,
+rebinds VEX to that registry digest, and repeats the non-root smoke. A change in packages or findings
+therefore cannot inherit the local digest's pass silently.
 
 ## Security and deployment status
 

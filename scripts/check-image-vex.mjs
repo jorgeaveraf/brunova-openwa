@@ -17,7 +17,11 @@ const imageId = scan?.Metadata?.ImageID;
 if (!/^sha256:[a-f0-9]{64}$/.test(imageId ?? '')) {
   throw new Error('Trivy report does not contain an immutable sha256 image ID');
 }
-const productId = `pkg:oci/brunova/openwa@${imageId}`;
+const productDigest = process.env.OPENWA_VEX_PRODUCT_DIGEST ?? imageId;
+if (!/^sha256:[a-f0-9]{64}$/.test(productDigest)) {
+  throw new Error('OPENWA_VEX_PRODUCT_DIGEST must be an immutable sha256 digest');
+}
+const productId = `pkg:oci/brunova/openwa@${productDigest}`;
 if (vex?.['@context'] !== 'https://openvex.dev/ns/v0.2.0' || !vex.author || !vex.timestamp) {
   throw new Error('OpenVEX document is missing its v0.2 context, author, or timestamp');
 }
@@ -58,6 +62,7 @@ for (const id of criticalIds) {
 const result = {
   schemaVersion: 1,
   imageId,
+  productDigest,
   productId,
   input: {
     records: gated.length,
