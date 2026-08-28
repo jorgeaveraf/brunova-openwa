@@ -30,7 +30,8 @@ committed.
 | `API_KEY_PEPPER` | marker | 32 random bytes as hex | yes | application | Generate; never commit |
 | `ALLOW_DEV_API_KEY` | yes | `false` | no | application | Required |
 | `ENABLE_SWAGGER` | yes | `false` | no | application | Required |
-| `MCP_ENABLED` | yes | `false` | no | application | Required |
+| `MCP_ENABLED` | yes | `true` | no | application | Required |
+| `MCP_READONLY` | yes | `false` | no | application | Required; exposes the authenticated write-tool tier |
 | `WEBHOOK_SSRF_PROTECT` | yes | `true` | no | application | Required |
 | `ENGINE_TYPE` | yes | `whatsapp-web.js` | no | application | Required |
 | `MAX_CONCURRENT_SESSIONS` | yes | `1` | no | application | Required |
