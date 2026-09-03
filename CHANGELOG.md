@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Updated transitive `fast-uri` from 3.1.5 to 3.1.7 to resolve CVE-2026-75899,
+  CVE-2026-75931, CVE-2026-75975, and CVE-2026-76172 in the production image.
 - whatsapp-web.js post-QR reinjection now tolerates the concurrent Puppeteer binding-registration
   race fixed upstream in PR #201861. The losing injection previously rejected with
   `window[name] already exists`, leaving the message bridge partially attached before an unexpected
