@@ -75,7 +75,14 @@ done
 unset numeric_value
 
 if [ "${OPENWA_DEPLOY_MODE:-local}" = production ]; then
-  [ "$(env_value AUTO_START_SESSIONS)" = false ] || die 'AUTO_START_SESSIONS must be false for first production deploy'
+  # A fresh production install must not revive persisted sessions before the operator has
+  # completed the first-deploy checks. During an update, however, the existing container proves
+  # this is not the first deploy and AUTO_START_SESSIONS may retain its production value.
+  existing_container="$(compose ps -q openwa)"
+  if [ -z "$existing_container" ]; then
+    [ "$(env_value AUTO_START_SESSIONS)" = false ] || die 'AUTO_START_SESSIONS must be false for first production deploy'
+  fi
+  unset existing_container
   base_url="$(env_value BASE_URL)"
   dashboard_url="$(env_value DASHBOARD_URL)"
   cors_origin="$(env_value CORS_ORIGINS)"

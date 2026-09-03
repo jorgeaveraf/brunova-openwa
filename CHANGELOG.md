@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Production validation now requires `AUTO_START_SESSIONS=false` only when no existing OpenWA
+  container is present, so guarded updates can retain session auto-start after the first deploy.
 - Updated transitive `fast-uri` from 3.1.5 to 3.1.7 to resolve CVE-2026-75899,
   CVE-2026-75931, CVE-2026-75975, and CVE-2026-76172 in the production image.
 - whatsapp-web.js post-QR reinjection now tolerates the concurrent Puppeteer binding-registration
