@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- whatsapp-web.js post-QR reinjection now tolerates the concurrent Puppeteer binding-registration
+  race fixed upstream in PR #201861. The losing injection previously rejected with
+  `window[name] already exists`, leaving the message bridge partially attached before an unexpected
+  WhatsApp `LOGOUT`/`post_logout` navigation.
 - Session auto-start no longer runs twice at boot. The plugin port for `SessionService` was a factory returning
   the same instance, which made Nest dispatch its lifecycle hooks twice: two auto-start loops raced, each
   session logged `Auto-start failed` with `Session is already starting`, and the 2 s launch stagger was lost.
